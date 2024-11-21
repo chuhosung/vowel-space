@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모음 삼각형 플로터 비교</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+<body>
+    <h1>모음 삼각형 플로터 비교</h1>
+    <form id="vowelForm">
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>모음</th>
+                    <th>F1 (정상)</th>
+                    <th>F2 (정상)</th>
+                    <th>F1 (환자)</th>
+                    <th>F2 (환자)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>'a'</td>
+                    <td>730</td>
+                    <td>1090</td>
+                    <td><input type="number" id="f1_a_b" required></td>
+                    <td><input type="number" id="f2_a_b" required></td>
+                </tr>
+                <tr>
+                    <td>'i'</td>
+                    <td>270</td>
+                    <td>2290</td>
+                    <td><input type="number" id="f1_i_b" required></td>
+                    <td><input type="number" id="f2_i_b" required></td>
+                </tr>
+                <tr>
+                    <td>'u'</td>
+                    <td>300</td>
+                    <td>870</td>
+                    <td><input type="number" id="f1_u_b" required></td>
+                    <td><input type="number" id="f2_u_b" required></td>
+                </tr>
+            </tbody>
+        </table>
+        <br>
+        <button type="button" onclick="plotVowelTriangle()">모음 삼각형 비교 플로팅</button>
+    </form>
+
+    <div id="plot"></div>
+
+    <h2>분석 결과</h2>
+    <div id="comparisonResults">
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>정상 (Person A)</th>
+                    <th>환자 (Person B)</th>
+                    <th>차이 (A - B)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>모음 공간 면적 (VSA)</td>
+                    <td><span id="vsaResultA"></span></td>
+                    <td><span id="vsaResultB"></span></td>
+                    <td><span id="vsaDifference"></span></td>
+                </tr>
+                <tr>
+                    <td>모음 발음 지수 (VAI)</td>
+                    <td><span id="vaiResultA"></span></td>
+                    <td><span id="vaiResultB"></span></td>
+                    <td><span id="vaiDifference"></span></td>
+                </tr>
+                <tr>
+                    <td>포먼트 중앙 집중 지수 (FCR)</td>
+                    <td><span id="fcrResultA"></span></td>
+                    <td><span id="fcrResultB"></span></td>
+                    <td><span id="fcrDifference"></span></td>
+                </tr>
+                <tr>
+                    <td>F2 비율</td>
+                    <td><span id="f2RatioResultA"></span></td>
+                    <td><span id="f2RatioResultB"></span></td>
+                    <td><span id="f2RatioDifference"></span></td>
+                </tr>
+            </tbody>
+        </table>
+        <p>해석:</p>
+        <p id="interpretationResult"></p>
+    </div>
+
+    <script>
+        function plotVowelTriangle() {
+            // 정상 값
+            const f1_a_a = 730, f2_a_a = 1090;
+            const f1_i_a = 270, f2_i_a = 2290;
+            const f1_u_a = 300, f2_u_a = 870;
+
+            // 환자 값 입력
+            const f1_a_b = parseFloat(document.getElementById("f1_a_b").value);
+            const f2_a_b = parseFloat(document.getElementById("f2_a_b").value);
+            const f1_i_b = parseFloat(document.getElementById("f1_i_b").value);
+            const f2_i_b = parseFloat(document.getElementById("f2_i_b").value);
+            const f1_u_b = parseFloat(document.getElementById("f1_u_b").value);
+            const f2_u_b = parseFloat(document.getElementById("f2_u_b").value);
+
+            // 모음 레이블
+            const vowelLabels = ['a', 'i', 'u'];
+
+            // 정상 데이터
+            const f1_A = [f1_a_a, f1_i_a, f1_u_a, f1_a_a];
+            const f2_A = [f2_a_a, f2_i_a, f2_u_a, f2_a_a];
+
+            // 환자 데이터
+            const f1_B = [f1_a_b, f1_i_b, f1_u_b, f1_a_b];
+            const f2_B = [f2_a_b, f2_i_b, f2_u_b, f2_a_b];
+
+            // 그래프 데이터 설정
+            const normalTrace = {
+                x: f2_A,
+                y: f1_A,
+                mode: 'lines+markers+text',
+                name: '정상 모음 삼각형',
+                line: { dash: 'dot', color: 'red' },
+                text: vowelLabels,
+                textposition: 'top right'
+            };
+
+            const patientTrace = {
+                x: f2_B,
+                y: f1_B,
+                mode: 'lines+markers+text',
+                name: '환자 모음 삼각형',
+                line: { color: 'blue' },
+                text: vowelLabels,
+                textposition: 'top right'
+            };
+
+            const data = [normalTrace, patientTrace];
+            const layout = {
+                title: '모음 삼각형 (정상 vs 환자)',
+                xaxis: { title: 'F2 (Hz)', autorange: 'reversed' },
+                yaxis: { title: 'F1 (Hz)', autorange: 'reversed' },
+                width: 600,
+                height: 600
+            };
+
+            Plotly.newPlot('plot', data, layout);
+
+            // 계산 및 결과 출력
+            const vsaA = calculateVSA(f1_A, f2_A);
+            const vsaB = calculateVSA(f1_B, f2_B);
+            document.getElementById("vsaResultA").innerText = vsaA.toFixed(2);
+            document.getElementById("vsaResultB").innerText = vsaB.toFixed(2);
+            document.getElementById("vsaDifference").innerText = (vsaB - vsaA).toFixed(2);
+
+            const vaiA = calculateVAI(f1_A, f2_A);
+            const vaiB = calculateVAI(f1_B, f2_B);
+            document.getElementById("vaiResultA").innerText = vaiA.toFixed(2);
+            document.getElementById("vaiResultB").innerText = vaiB.toFixed(2);
+            document.getElementById("vaiDifference").innerText = (vaiB - vaiA).toFixed(2);
+
+            const fcrA = calculateFCR(f1_A, f2_A);
+            const fcrB = calculateFCR(f1_B, f2_B);
+            document.getElementById("fcrResultA").innerText = fcrA.toFixed(2);
+            document.getElementById("fcrResultB").innerText = fcrB.toFixed(2);
+            document.getElementById("fcrDifference").innerText = (fcrB - fcrA).toFixed(2);
+
+            const f2RatioA = calculateF2Ratio(f2_A);
+            const f2RatioB = calculateF2Ratio(f2_B);
+            document.getElementById("f2RatioResultA").innerText = f2RatioA.toFixed(2);
+            document.getElementById("f2RatioResultB").innerText = f2RatioB.toFixed(2);
+            document.getElementById("f2RatioDifference").innerText = (f2RatioB - f2RatioA).toFixed(2);
+
+            const interpretation = generateInterpretation(f1_B, f2_B, vsaB);
+            document.getElementById("interpretationResult").innerText = interpretation;
+        }
+
+        // VSA 계산 (헤론의 공식)
+        function calculateVSA(f1, f2) {
+            const a = Math.sqrt((f1[1] - f1[0]) ** 2 + (f2[1] - f2[0]) ** 2);
+            const b = Math.sqrt((f1[2] - f1[1]) ** 2 + (f2[2] - f2[1]) ** 2);
+            const c = Math.sqrt((f1[2] - f1[0]) ** 2 + (f2[2] - f2[0]) ** 2);
+            const s = (a + b + c) / 2;
+            return Math.sqrt(s * (s - a) * (s - b) * (s - c));
+        }
+
+        // VAI 계산
+        function calculateVAI(f1, f2) {
+            return (f2[1] + f1[0]) / (f1[0] + f1[1] + f2[0] + f2[1]);
+        }
+
+        // FCR 계산
+        function calculateFCR(f1, f2) {
+            return (f2[0] + f2[1] + f1[0] + f1[1]) / (f2[1] + f1[0]);
+        }
+
+        // F2 비율 계산
+        function calculateF2Ratio(f2) {
+            return f2[1] / f2[0];
+        }
+
+        // 해석 생성
+        function generateInterpretation(f1_values, f2_values, vsa) {
+            const normal_f2_i = 2290;
+            const normal_f2_u = 870;
+            const normal_f1_a = 730;
+            const normal_vsa = 308600;
+
+            let interpretations = [];
+
+            // /i/ 모음 F2 해석
+            if (f2_values[1] - normal_f2_i > 100) {
+                interpretations.push("실험 대상자의 /i/ 모음의 F2 값은 정상 기준에 비해 높습니다. 이는 혀가 전방화되었음을 의미합니다.");
+            } else if (f2_values[1] - normal_f2_i < -100) {
+                interpretations.push("실험 대상자의 /i/ 모음의 F2 값은 정상 기준에 비해 낮습니다. 이는 혀가 후방화되었음을 의미합니다.");
+            } else {
+                interpretations.push("/i/ 모음의 F2 값은 정상 범위에 있습니다.");
+            }
+
+            // /u/ 모음 F2 해석
+            if (f2_values[2] - normal_f2_u > 100) {
+                interpretations.push("실험 대상자의 /u/ 모음의 F2 값은 정상 기준에 비해 높습니다. 이는 혀가 지나치게 전방화되었음을 의미합니다.");
+            } else {
+                interpretations.push("/u/ 모음의 F2 값은 정상 범위에 있습니다.");
+            }
+
+            // /a/ 모음 F1 해석
+            if (f1_values[0] - normal_f1_a > 100) {
+                interpretations.push("실험 대상자의 /a/ 모음의 F1 값은 정상 기준에 비해 높습니다. 이는 혀가 더 낮게 움직였음을 의미합니다.");
+            } else if (f1_values[0] - normal_f1_a < -100) {
+                interpretations.push("실험 대상자의 /a/ 모음의 F1 값은 정상 기준에 비해 낮습니다. 이는 혀가 더 높게 움직였음을 의미합니다.");
+            } else {
+                interpretations.push("/a/ 모음의 F1 값은 정상 범위에 있습니다.");
+            }
+
+            // VSA 해석
+            const vsa_diff = vsa - normal_vsa;
+            if (vsa_diff < -10000) {
+                interpretations.push(`실험 대상자의 모음 삼각도 면적은 정상 기준에 비해 ${Math.abs(vsa_diff).toFixed(2)}만큼 작습니다. 이는 혀의 움직임 범위가 줄어들어 발음의 명확도가 감소할 가능성이 있음을 의미합니다.`);
+            } else if (vsa_diff > 10000) {
+                interpretations.push(`실험 대상자의 모음 삼각도 면적은 정상 기준에 비해 ${vsa_diff.toFixed(2)}만큼 큽니다. 이는 혀의 움직임이 증가하여 발음의 명확도가 높아졌음을 의미합니다.`);
+            } else {
+                interpretations.push("모음 삼각도 면적(VSA)은 정상 범위에 있습니다.");
+            }
+
+            return interpretations.join("\n");
+        }
+    </script>
+</body>
+
+</html>
