@@ -11,7 +11,7 @@ This project provides a web-based application to compare vowel space areas betwe
 
 ## How to Use
 1. **Open the Application**: The web application is hosted on GitHub Pages at the following link:
-   - [https://username.github.io/vowel-space/](https://chuhosung.github.io/vowel-space/) (Replace `username` with your GitHub username)
+   - [https://chuhosung.github.io/vowel-space/](https://chuhosung.github.io/vowel-space/) (Replace `username` with your GitHub username)
 
 2. **Input Data**: Enter the F1 and F2 values for Person B (the patient) for the vowels /a/, /i/, and /u/.
 
